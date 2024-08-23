@@ -17,6 +17,12 @@ import time
 import threading
 import queue
 import re
+import socket
+
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
 
 
 
@@ -88,6 +94,32 @@ def send_file_to_user(filepath: str):
     with open(f"downloads/{filepath}", "wb") as f:  
         f.write(file_in_bytes) 
     return "File sent to the user successfully."
+
+class StreamlitInputSchema(BaseModel):
+    code: str = Field(description="Code to render a Streamlit component.")
+
+@tool("render_streamlit", args_schema=StreamlitInputSchema, return_direct=True)
+def render_streamlit(code: str):
+    """Render a Streamlit component with the given code and return the render result."""
+    try:
+        # Create a temporary Python file with the Streamlit code
+        with open("temp_streamlit_app.py", "w") as f:
+            f.write(code)
+        
+        port = find_free_port()
+        subprocess.Popen(["streamlit", "run", "temp_streamlit_app.py", f"--server.port={port}"])
+        
+        # Wait for the app to start
+        time.sleep(5)
+        
+        # Render the Streamlit app in an iframe
+        with col4:
+            st.header('Streamlit App Preview')
+            components.iframe(src=f"http://localhost:{port}", height=600, scrolling=True)
+        
+        return f"Streamlit app rendered successfully in iframe on port {port}"
+    except Exception as e:
+        return f"An error occurred while rendering the Streamlit app: {str(e)}"
 
 class NpmDepdencySchema(BaseModel):
     package_names: str = Field(description="Name of the npm packages to install. Should be space-separated.")
@@ -203,7 +235,8 @@ def render_react(code: str):
         
 
 
-tools = [execute_python, render_react, send_file_to_user, install_npm_dependencies]
+# tools = [execute_python, render_react, send_file_to_user, install_npm_dependencies]
+tools = [execute_python, render_streamlit, send_file_to_user]
 
 # LangGraph to orchestrate the workflow of the chatbot
 @st.cache_resource
@@ -234,7 +267,7 @@ def initialize_session_state():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
         st.session_state["messages"] = [{"role":"system", "content":"""
-You are a Python and React expert. You can create React applications and run Python code in a Jupyter notebook. Here are some guidelines for this environment:
+You are a Python and Streamlit expert. You can create Streamlit applications and run Python code in a Jupyter notebook. Here are some guidelines for this environment:
 - The python code runs in jupyter notebook.
 - Display visualizations using matplotlib or any other visualization library directly in the notebook. don't worry about saving the visualizations to a file.
 - You have access to the internet and can make api requests.
@@ -248,13 +281,13 @@ You are a Python and React expert. You can create React applications and run Pyt
         st.session_state["filesuploaded"] = False
         st.session_state["tool_text_list"] = []
         st.session_state["image_data"] = ""
-        sandboxmain = CodeInterpreter.create()
-        sandboxid = sandboxmain.id
-        sandboxmain.keep_alive(300)
+        # sandboxmain = CodeInterpreter.create()
+        # sandboxid = sandboxmain.id
+        # sandboxmain.keep_alive(300)
 
-        with open("sandboxid.txt", "w") as f:
-            f.write(sandboxid)
-        st.session_state.chat_history = []
+        # with open("sandboxid.txt", "w") as f:
+        #     f.write(sandboxid)
+        # st.session_state.chat_history = []
 
         for file in ["application.flag", "chart.png"]:
             if os.path.exists(file):
@@ -272,9 +305,9 @@ with st.sidebar:
     uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True)
     st.session_state["uploaded_files"] = uploaded_files
     if uploaded_files and not st.session_state["filesuploaded"]:
-        with open("sandboxid.txt", "r") as f:
-            sandboxid = f.read()
-        sandbox = CodeInterpreter.reconnect(sandboxid)
+        # with open("sandboxid.txt", "r") as f:
+        #     sandboxid = f.read()
+        # sandbox = CodeInterpreter.reconnect(sandboxid)
         save_path = os.path.join(os.getcwd(), "uploaded_files")
         if not os.path.exists(save_path):
             os.makedirs(save_path)
@@ -284,9 +317,9 @@ with st.sidebar:
             file_path = os.path.join(save_path, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            with open(file_path, "rb") as f:
-                remote_path = sandbox.upload_file(f)  
-                print(f"Uploaded file to {remote_path}")
+            # with open(file_path, "rb") as f:
+                # remote_path = sandbox.upload_file(f)  
+                # print(f"Uploaded file to {remote_path}")
             if file_extension in ['.jpeg', '.jpg', '.png']:
                 file_path = os.path.join(save_path, uploaded_file.name)
                 with open(file_path, "rb") as f:
@@ -349,6 +382,9 @@ with col2:
                                     aimessages += str(part['text']) + "\n"
                                     st.session_state.tool_text_list.append({"type": "text", "text": part['text']})
                                     messages.chat_message("assistant").markdown(part['text'])
+                                # elif 'code' in part and 'streamlit' in part['code'].lower():
+                                #     # Render Streamlit code
+                                #     render_streamlit(part['code'])
                         for tool_call in message.tool_calls:
                             if "code" in tool_call["args"]:
                                 code_text = tool_call["args"]["code"]
@@ -370,7 +406,7 @@ with col2:
 if os.path.exists("application.flag"):
     with col4:
         st.header('Application Preview')
-        react_app_url = f"http://localhost:3000?t={int(time.time())}"
+        react_app_url = f"http://localhost:8505?t={int(time.time())}"
         components.iframe(src=react_app_url, height=700)
 
 if os.path.exists("downloads") and os.listdir("downloads"):

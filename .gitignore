@@ -1,3 +1,14 @@
+# Environments
+.env*
+.venvgpu
+.venv11
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # Dependency directories
 node_modules/
 build/
