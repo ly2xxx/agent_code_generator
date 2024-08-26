@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python:Streamlit",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                 "run",
+                 "main_python_streamlit.py",
+                 "--server.port",
+                 "8505"
+            ]
+            // "program": "${file}",
+            // "console": "integratedTerminal",
+            // "justMyCode": true
+        },
+        {
+            "name": "Python:StreamlitAdhoc",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            // "python": "c:/code/rag_chat_poc_openai/.venv11/Scripts/python.exe",
+            "args": [
+                 "run",
+                 "filename.py",
+                 "--server.port",
+                 "8508"
+            ]
+            
+        }
+    ]
+    
+}
