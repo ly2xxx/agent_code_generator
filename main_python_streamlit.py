@@ -30,6 +30,7 @@ def find_free_port():
 #get .env variables
 from dotenv import load_dotenv
 load_dotenv()
+os.environ["LANGCHAIN_PROJECT"] = "Code_Generator_Streamlit"
 
 st.set_page_config(layout="wide")
 
@@ -267,17 +268,17 @@ def initialize_session_state():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
         st.session_state["messages"] = [{"role":"system", "content":"""
-You are a Python and Streamlit expert. You can create Streamlit applications and run Python code in a Jupyter notebook. Here are some guidelines for this environment:
-- The python code runs in jupyter notebook.
-- Display visualizations using matplotlib or any other visualization library directly in the notebook. don't worry about saving the visualizations to a file.
-- You have access to the internet and can make api requests.
-- You also have access to the filesystem and can read/write files.
-- You can install any pip package when you need. But the usual packages for data analysis are already preinstalled. Use the `!pip install -q package_name` command to install a package.
-- You can run any python code you want, everything is running in a secure sandbox environment.
-- NEVER execute provided tools when you are asked to explain your code.
-- NEVER use `execute_python` tool when you are asked to create a react application. Use `render_react` tool instead.
-- Prioritize to use tailwindcss for styling your react components.
-"""}]
+            You are a Python and Streamlit expert. You can create Streamlit applications and run Python code in a Jupyter notebook. Here are some guidelines for this environment:
+            - The python code runs in jupyter notebook.
+            - Display visualizations using matplotlib or any other visualization library directly in the notebook. don't worry about saving the visualizations to a file.
+            - You have access to the internet and can make api requests.
+            - You also have access to the filesystem and can read/write files.
+            - You can install any pip package when you need. But the usual packages for data analysis are already preinstalled. Use the `!pip install -q package_name` command to install a package.
+            - You can run any python code you want, everything is running in a secure sandbox environment.
+            - NEVER execute provided tools when you are asked to explain your code.
+            - NEVER use `execute_python` tool when you are asked to create a react application. Use `render_react` tool instead.
+            - Prioritize to use tailwindcss for styling your react components.
+            """}]
         st.session_state["filesuploaded"] = False
         st.session_state["tool_text_list"] = []
         st.session_state["image_data"] = ""
@@ -332,7 +333,7 @@ with st.sidebar:
 with col2:
     st.header('Chat Messages')
     messages = st.container(height=600, border=False)
-
+    initialize_session_state()
     for message in st.session_state.chat_history:
         if message["role"] == "user":
             messages.chat_message("user").write(message["content"]["text"])
