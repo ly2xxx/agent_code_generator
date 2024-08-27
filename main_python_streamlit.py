@@ -263,7 +263,7 @@ def create_graph():
 def create_graph_image():
     return create_graph().get_graph().draw_mermaid_png()
 
-@st.cache_resource
+# @st.cache_resource
 def initialize_session_state():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -333,7 +333,9 @@ with st.sidebar:
 with col2:
     st.header('Chat Messages')
     messages = st.container(height=600, border=False)
-    initialize_session_state()
+    # initialize_session_state()
+    # if "chat_history" not in st.session_state:
+    #     st.session_state.chat_history = []
     for message in st.session_state.chat_history:
         if message["role"] == "user":
             messages.chat_message("user").write(message["content"]["text"])
