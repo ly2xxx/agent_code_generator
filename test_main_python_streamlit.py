@@ -30,29 +30,29 @@ def test_main_python_streamlit():
         at.run()
         assert not at.exception
 
-        # # Find the chat input widget
-        # chat_input = at.chat_input[0] #get_widget("chat_input")
+        # Find the chat input widget
+        chat_input = at.chat_input[0] #get_widget("chat_input")
 
-        # # Set the value of the chat input
-        # chat_input.set_value("generate sample Streamlit helloworld application")
+        # Set the value of the chat input
+        chat_input.set_value("generate sample Streamlit helloworld application")
 
-        # # Simulate submitting the chat input
-        # chat_input.run()
+        # Simulate submitting the chat input
+        chat_input.run()
 
-        # # Run the app again to process the input
-        # at.run()
+        # Run the app again to process the input
+        at.run()
 
-        # # Simulate user input
-        # # at.text_input(key="chat_input").set_value("generate sample Streamlit helloworld application")
-        # # at.button(key="submit_button").click()
+        # Simulate user input
+        # at.text_input(key="chat_input").set_value("generate sample Streamlit helloworld application")
+        # at.button(key="submit_button").click()
 
-        # # Check if the mocked execute_python function was called
-        # mock_execute_python.assert_called_once()
+        # Check if the mocked execute_python function was called
+        mock_execute_python.assert_called_once()
 
-        # # Check if the response is displayed in the app
-        # assert "Here's a sample Streamlit hello world application:" in at.get_text_data()
-        # assert "import streamlit as st" in at.get_text_data()
-        # assert "st.title(\"Hello, World!\")" in at.get_text_data()
+        # Check if the response is displayed in the app
+        assert "Here's a sample Streamlit hello world application:" in at.get_text_data()
+        assert "import streamlit as st" in at.get_text_data()
+        assert "st.title(\"Hello, World!\")" in at.get_text_data()
 
         # Additional assertions can be added to check for specific elements or behavior
 
