@@ -125,7 +125,7 @@ tools = [execute_python, render_streamlit, send_file_to_user]
 def create_graph():
     # llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0.1, max_tokens=4096)
     llm = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
-    llm_with_tools = llm.bind_tools(tools=tools, tool_choice="any")
+    llm_with_tools = llm.bind_tools(tools=tools)#, tool_choice="any")
     tool_node = ToolNode(tools)
     graph_builder = MessageGraph()
     graph_builder.add_node("chatbot", llm_with_tools)
