@@ -128,3 +128,5 @@ This application combines advanced AI capabilities with code execution. Always r
 
 ## Other references:
 https://app.pluralsight.com/ilx/video-courses/clips/493c234c-88e8-4981-9918-2f69567419c9 - Zero-shot ReAct Agent with PythonREPTool
+https://www.youtube.com/watch?v=99OEoP5sy0U - Streamlit PyTest
+https://www.youtube.com/watch?v=0i9NzY_b3pg - LangGraph Agents with Structured Output

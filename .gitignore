@@ -46,6 +46,9 @@ Thumbs.db
 # Optional tsc command output
 *.tsbuildinfo
 
+# pytest cache files
+__pycache__/
+
 package-lock.json
 
 application.flag
