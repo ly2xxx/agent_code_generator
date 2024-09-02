@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-# from langchain_anthropic import ChatAnthropic
+# from langchain_anthropic import ChatAnthropic 
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -12,11 +12,7 @@ import streamlit.components.v1 as components
 import subprocess
 from langchain.pydantic_v1 import BaseModel, Field
 import shutil
-import platform
 import time
-import threading
-import queue
-import re
 import socket
 
 def find_free_port():
@@ -122,121 +118,6 @@ def render_streamlit(code: str):
     except Exception as e:
         return f"An error occurred while rendering the Streamlit app: {str(e)}"
 
-class NpmDepdencySchema(BaseModel):
-    package_names: str = Field(description="Name of the npm packages to install. Should be space-separated.")
-
-@tool("install_npm_dependencies", args_schema=NpmDepdencySchema ,return_direct=True)
-def install_npm_dependencies(package_names: str):
-    """Installs the given npm dependencies and returns the result of the installation."""
-    try:
-        # Split the package_names string into a list of individual package names
-        package_list = package_names.split()
-        npm_cmd = "npm.cmd" if platform.system() == "Windows" else "npm"
-        # Construct the command with each package name as a separate argument
-        command = [npm_cmd, "install"] + package_list
-        result = subprocess.run(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
-        )
-    except subprocess.CalledProcessError as e:
-        return f"Failed to install npm packages '{package_names}': {e.stderr}"
-    
-    return f"Successfully installed npm packages '{package_names}'"
-
-class ReactInputSchema(BaseModel):
-    code: str = Field(description="Code to render a react component. Should not contain localfile import statements.")
-
-# This is for agent to render react component on the fly with the given code
-@tool("render_react", args_schema=ReactInputSchema, return_direct=True)
-def render_react(code: str):
-    """Render a react component with the given code and return the render result."""
-    cwd = os.getcwd()
-    file_path = os.path.join(cwd, "src", "App.js")
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(code)
-    # Determine the appropriate command based on the operating system
-    npm_cmd = "npm.cmd" if platform.system() == "Windows" else "npm"
-    
-    # Start the React application
-    try:
-        if platform.system() == "Windows":
-            subprocess.run(["taskkill", "/F", "/IM", "node.exe"], check=True)
-        else:
-            subprocess.run(["pkill", "node"], check=True)
-    except subprocess.CalledProcessError:
-        pass
-
-    output_queue = queue.Queue()
-    error_messages = []
-    success_pattern = re.compile(r'Compiled successfully|webpack compiled successfully')
-    error_pattern = re.compile(r'Failed to compile|Error:|ERROR in')
-    start_time = time.time()
-
-    def handle_output(stream, prefix):
-        for line in iter(stream.readline, ''):
-            output_queue.put(f"{prefix}: {line.strip()}")
-        stream.close()
-
-    try:
-        process = subprocess.Popen(
-            [npm_cmd, "start"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1
-        )
-
-        stdout_thread = threading.Thread(target=handle_output, args=(process.stdout, "stdout"))
-        stderr_thread = threading.Thread(target=handle_output, args=(process.stderr, "stderr"))
-
-        stdout_thread.start()
-        stderr_thread.start()
-
-        compilation_failed = False
-
-        while True:
-            try:
-                line = output_queue.get(timeout=5)  # Wait for 5 seconds for new output
-                print(line)  # Print the output for debugging
-
-                if success_pattern.search(line):
-                    with open("application.flag", "w") as f:
-                        f.write("flag")
-                    return "npm start completed successfully"
-
-                if error_pattern.search(line):
-                    compilation_failed = True
-                    error_messages.append(line)
-
-                if compilation_failed and "webpack compiled with" in line:
-                    return "npm start failed with errors:\n" + "\n".join(error_messages)
-
-            except queue.Empty:
-                # Check if we've exceeded the timeout
-                if time.time() - start_time > 30:
-                    return f"npm start process timed out after 30 seconds"
-
-            if not stdout_thread.is_alive() and not stderr_thread.is_alive():
-                # Both output streams have closed
-                break
-
-    except Exception as e:
-        return f"An error occurred: {str(e)}"
-
-    if error_messages:
-        return "npm start failed with errors:\n" + "\n".join(error_messages)
-
-    with open("application.flag", "w") as f:
-        f.write("flag")
-    return "npm start completed without obvious errors or success messages"
-        
-        
-
-
-# tools = [execute_python, render_react, send_file_to_user, install_npm_dependencies]
 tools = [execute_python, render_streamlit, send_file_to_user]
 
 # LangGraph to orchestrate the workflow of the chatbot
@@ -244,7 +125,7 @@ tools = [execute_python, render_streamlit, send_file_to_user]
 def create_graph():
     # llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0.1, max_tokens=4096)
     llm = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
-    llm_with_tools = llm.bind_tools(tools=tools)#, tool_choice="auto")
+    llm_with_tools = llm.bind_tools(tools=tools, tool_choice="any")
     tool_node = ToolNode(tools)
     graph_builder = MessageGraph()
     graph_builder.add_node("chatbot", llm_with_tools)
@@ -282,13 +163,6 @@ def initialize_session_state():
         st.session_state["filesuploaded"] = False
         st.session_state["tool_text_list"] = []
         st.session_state["image_data"] = ""
-        # sandboxmain = CodeInterpreter.create()
-        # sandboxid = sandboxmain.id
-        # sandboxmain.keep_alive(300)
-
-        # with open("sandboxid.txt", "w") as f:
-        #     f.write(sandboxid)
-        # st.session_state.chat_history = []
 
         for file in ["application.flag", "chart.png"]:
             if os.path.exists(file):
@@ -306,9 +180,6 @@ with st.sidebar:
     uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True)
     st.session_state["uploaded_files"] = uploaded_files
     if uploaded_files and not st.session_state["filesuploaded"]:
-        # with open("sandboxid.txt", "r") as f:
-        #     sandboxid = f.read()
-        # sandbox = CodeInterpreter.reconnect(sandboxid)
         save_path = os.path.join(os.getcwd(), "uploaded_files")
         if not os.path.exists(save_path):
             os.makedirs(save_path)
@@ -318,9 +189,6 @@ with st.sidebar:
             file_path = os.path.join(save_path, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            # with open(file_path, "rb") as f:
-                # remote_path = sandbox.upload_file(f)  
-                # print(f"Uploaded file to {remote_path}")
             if file_extension in ['.jpeg', '.jpg', '.png']:
                 file_path = os.path.join(save_path, uploaded_file.name)
                 with open(file_path, "rb") as f:
@@ -333,9 +201,7 @@ with st.sidebar:
 with col2:
     st.header('Chat Messages')
     messages = st.container(height=600, border=False)
-    # initialize_session_state()
-    # if "chat_history" not in st.session_state:
-    #     st.session_state.chat_history = []
+
     for message in st.session_state.chat_history:
         if message["role"] == "user":
             messages.chat_message("user").write(message["content"]["text"])
