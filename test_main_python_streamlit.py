@@ -28,29 +28,23 @@ def test_main_python_streamlit():
 
         # Run the app
         at.run()
-
         assert not at.exception
 
-        # # Wait for app to load
-        # time.sleep(2)
+        # # Find the chat input widget
+        # chat_input = at.chat_input[0] #get_widget("chat_input")
 
-        # # Print all widget keys for debugging
-        # print("Available widget keys:", at.get_widget_keys())
+        # # Set the value of the chat input
+        # chat_input.set_value("generate sample Streamlit helloworld application")
 
-        # # Try to find the text input by a partial key match
-        # text_inputs = at.get_widget_by_type(st.text_input)
-        # if text_inputs:
-        #     text_input = text_inputs[0]
-        #     text_input.set_value("generate sample Streamlit helloworld application")
-        # else:
-        #     raise ValueError("No text input found in the app")
+        # # Simulate submitting the chat input
+        # chat_input.run()
 
-        # # Find and click the submit button
-        # submit_button = at.get_widget_by_type(st.button)
-        # if submit_button:
-        #     submit_button[0].click()
-        # else:
-        #     raise ValueError("No button found in the app")
+        # # Run the app again to process the input
+        # at.run()
+
+        # # Simulate user input
+        # # at.text_input(key="chat_input").set_value("generate sample Streamlit helloworld application")
+        # # at.button(key="submit_button").click()
 
         # # Check if the mocked execute_python function was called
         # mock_execute_python.assert_called_once()
@@ -59,6 +53,8 @@ def test_main_python_streamlit():
         # assert "Here's a sample Streamlit hello world application:" in at.get_text_data()
         # assert "import streamlit as st" in at.get_text_data()
         # assert "st.title(\"Hello, World!\")" in at.get_text_data()
+
+        # Additional assertions can be added to check for specific elements or behavior
 
 if __name__ == "__main__":
     test_main_python_streamlit()
