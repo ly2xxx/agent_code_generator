@@ -132,3 +132,5 @@ https://airbyte.com/data-engineering-resources/using-langchain-react-agents#what
 https://www.youtube.com/watch?v=99OEoP5sy0U - Streamlit PyTest
 https://coverage.readthedocs.io/en/7.6.1/ - python code coverage tool
 https://www.youtube.com/watch?v=0i9NzY_b3pg - LangGraph Agents with Structured Output
+https://docs.copilotkit.ai/quickstart - copilot
+   node .\Express.js
